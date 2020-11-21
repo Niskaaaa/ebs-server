@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <p></p>
+</head>
+
+<body>
+
+</body>
+<script>
+    var origin = { 'red_apple': '111', 'blue_apple': { 'green_apple': { 'orange_apple': '222' } } }
+    var change = {}
+    function deepCopy(newObj, oldObj) {
+
+        for (var x in oldObj) {
+            var item = oldObj[x]
+            var index = x.search(/_[a-z]/)
+                console.log(index)
+                //x[index]=''
+                x=x.replace("_","")
+                console.log(x[index].toUpperCase())
+                x = x.substr(0,index) + x[index].toUpperCase() + x.substr(index+1,x.length)
+            //console.log(typeof (x), x)
+            if (item instanceof Array) {
+                console.log(item)
+                newObj[x] = []
+                var add = deepCopy(newObj[x], item)
+                //newObj.push(add)
+            }
+            else if (item instanceof Object) {
+                console.log(item)
+                newObj[x] = {}
+                deepCopy(newObj[x], item)
+                //newObj.push(add)
+            }
+            else {
+                
+                newObj[x] = item
+            }
+        }
+
+        return newObj
+    }
+
+    deepCopy(change, origin)
+    console.log(change)
+</script>
+
+</html>
