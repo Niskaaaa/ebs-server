@@ -8,7 +8,9 @@ from bson import ObjectId
 from bson import json_util
 from flask import request
 import json
+from WXBizDataCrypt import WXBizDataCrypt
 import requests
+
 config.initconfig()
 configData=config.configData
 print(configData)
@@ -113,10 +115,31 @@ def articleDetail(id):
 @app.route('/login/wxLogin' , methods=['POST'])
 def login():
     code=request.get_data()
+    data = json.loads(code)
     code=json.loads(code)["code"]
+    print(data)
     r= requests.get('https://api.weixin.qq.com/sns/jscode2session?appid='+configData['appid']+'&secret='+configData['appSecret']+'&js_code='+code+'&grant_type=authorization_code')
-    print(json.loads(r.text))
-    return code
+    r = json.loads(r.text)
+    print(r)
+    sessionKey=r['session_key']
+
+    encryptedData=data['user']['encryptedData']
+    iv=data['user']['iv']
+
+    pc = WXBizDataCrypt(configData['appid'], sessionKey)
+    decode = pc.decrypt(encryptedData, iv)
+    print(decode)
+
+    exist= db['_user'].find_one({'_openId':decode['openId']})
+    if(exist==None):
+        createUser(decode['openId'],decode['nickName'])
+        exist= db['_user'].find_one({'_openId':decode['openId']})
+    print(exist)
+    return {"code":200,"name":exist['_name'],"token":exist['_openId']+r['session_key']}
+
+def createUser(openId,name):
+    db['_user'].insert_one({'_openId':openId,'_name':name})
+    print('created!')
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5000)
