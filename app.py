@@ -141,5 +141,26 @@ def createUser(openId,name):
     db['_user'].insert_one({'_openId':openId,'_name':name})
     print('created!')
 
+
+def access_get():
+    r= requests.get('https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='+configData['appid']+'&secret='+configData['appSecret'])
+    r = json.loads(r.text)
+    print(r)
+    return r
+
+
+@app.route('/postArticle' , methods=['POST'])
+def postArticle():
+    accessToken = access_get()['access_token']
+
+    data=request.get_data()
+    data=json.loads(data)
+    postData='{ '+'"content":'+'"'+data['content']+'"'+' }'
+    print(postData)
+    r= requests.post('https://api.weixin.qq.com/wxa/msg_sec_check?access_token='+accessToken,postData)
+    print(r.json())
+    return data
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5000)
+
