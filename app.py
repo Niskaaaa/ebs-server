@@ -10,6 +10,7 @@ from flask import request
 import json
 from WXBizDataCrypt import WXBizDataCrypt
 import requests
+import datetime
 
 config.initconfig()
 configData=config.configData
@@ -141,6 +142,9 @@ def createUser(openId,name):
     db['_user'].insert_one({'_openId':openId,'_name':name})
     print('created!')
 
+def createArticle(author,content,title,catalog):
+    db['_article'].insert_one({'authorName':author,'title':title,'content':content,'time':datetime.datetime.now(),'catalog':catalog})
+
 
 def access_get():
     r= requests.get('https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='+configData['appid']+'&secret='+configData['appSecret'])
@@ -155,6 +159,7 @@ def postArticle():
 
     data=request.get_data()
     data=json.loads(data)
+    createArticle(data['user']['userInfo']['nickName'],data['content'],data['title'],data['catalog'])
     postData='{ '+'"content":'+'"'+data['content']+'"'+' }'
     print(postData)
     r= requests.post('https://api.weixin.qq.com/wxa/msg_sec_check?access_token='+accessToken,postData)
